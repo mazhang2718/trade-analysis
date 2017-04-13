@@ -7,10 +7,6 @@ html_page = urllib2.urlopen("http://variety.com/v/film/")
 soup = BeautifulSoup(html_page)
 
 
-text_file = open("Output.txt", "w")
-text_file.write("Purchase Amount: %s")
-text_file.close()
-
 links = []
 
 for link in soup.findAll('a', attrs={'href': re.compile("^http://variety.com/[a-zA-Z0-9_/]*film")}):
