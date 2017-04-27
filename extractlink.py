@@ -4,8 +4,10 @@ import urllib2
 import re
 from datetime import datetime
 import xlsxwriter
+
+import requests
  
-html_page = urllib2.urlopen("http://variety.com/v/film/page/5/")
+html_page = urllib2.urlopen("http://variety.com/v/film/page/8/")
 soup = BeautifulSoup(html_page)
 
 headlineFilter = {"starts": 1, "adds": 1, "moving forward": 2, "in talks": 1, "to board":2, "boards":2, "teams up":1, 
@@ -52,6 +54,7 @@ for link in links:
 			#print(tagsStr)
 			headerValue = headerValue + headlineFilter[key]
 	
+	#headerValue = 1
 
 	if(headerValue > 0):
 		tagsHeader.append(tagsStr.lower())
@@ -97,11 +100,45 @@ worksheet.set_column(0, 0, 50)
 worksheet.write('A1', 'Title')
 worksheet.write('B1', 'Stars')
 worksheet.write('C1', 'Director')
+worksheet.write('D1', 'Plot')
 
 
 
 for movie in movieTitle:
+	split = movie.split()
+	movieString = split[0]
+	for i in range(1,len(split)):
+		movieString+= "+" + split[i] 
+
+	movieRequest = "http://www.omdbapi.com/?t=" + movieString
+
+	print movieRequest
+
+	r = requests.get(movieRequest)
+	json = r.json()
+
+	if 'Director' in json.keys():
+		director = json['Director']
+	else:
+		director = 'Not found'
+
+	if 'imdbRating' in json.keys():
+		imdbRating = json['imdbRating']
+	else:
+		imdbRating = 'Not found'
+
+	if 'Plot' in json.keys():
+		plot = json['Plot']
+	else:
+		plot = 'Not found'
+
 	worksheet.write_string(movieTitle.index(movie)+1, 0,movie)
+	worksheet.write_string(movieTitle.index(movie)+1, 1,imdbRating)
+
+	worksheet.write_string(movieTitle.index(movie)+1, 2,director)
+	worksheet.write_string(movieTitle.index(movie)+1, 3,plot)
+
+
 
 workbook.close()
 
