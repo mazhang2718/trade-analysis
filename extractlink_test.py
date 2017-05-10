@@ -18,12 +18,18 @@ m = re.search('([.][a-zA-Z0-9, ]*|[a-zA-Z0-9, ]*)direct(?!ly)(.*?)([A-Z][a-z]*[ 
 
 #start = m.find('AAA'
 
+print(m)
+
 if m:
     found = m.group(1)
+    print(found)
     subs = str(found)
     director = re.search('[A-Z][a-z]*[ ]([A-Z][a-z]*[ ]*)+', subs)
+    print(director)
     name = HumanName(str(director.group()))
     print(name.first, name.last)
+    fullName = name.first + " " + name.last
+    print(fullName)
     #print(found)
 
 
