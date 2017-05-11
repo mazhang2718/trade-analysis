@@ -25,18 +25,20 @@ headlineFilter = {"starts": 1, "adds": 1, "moving forward": 2, "in talks": 1, "t
 def nameExtraction(text, keyPhrase):
 	'''Extract name roles from the article content.'''
 
-	regEx = '([.][a-zA-Z0-9, ]*|[a-zA-Z0-9, ]*)' + keyPhrase + '(?!ly)(.*?)([A-Z][a-z]*[ ][A-Z][a-z]*|[.]|[“])'
+	regEx = '([.][a-zA-Z0-9, ]*|[a-zA-Z0-9, ]*)' + keyPhrase + '(?!ly)(.*?)[.]'
 	m = re.search(regEx, text)
 
 	fullName = ''
 
 	if m:
-		found = m.group(1)
-		subs = str(found)
+		found = m.group()
+		subs = (found)
+		print(subs)
 		role = re.search('[A-Z][a-z]*[ ]([A-Z][a-z]*[ ]*)+', subs)
-		if role:
-			name = HumanName(str(role.group()))
-			fullName = name.first + " " + name.last
+		#print(role.group())
+		name = HumanName(role.group())
+		fullName = name.first + " " + name.last
+		print(fullName)
 
 	return fullName
 
@@ -105,8 +107,8 @@ def scraper(url):
 			end = tagsStr.find('&#8217', start)
 			if("-" == tagsStr[end+7] 
 				or "director" == tagsStr[end+8:end+16].lower()
-				or "producer" == tagsStr[end+8:end+16]
-				or "star" == tagsStr[end+8:end+12]):
+				or "producer" == tagsStr[end+8:end+16].lower()
+				or "star" == tagsStr[end+8:end+12].lower()):
 				temp = tagsStr[end + 8:]
 				start = temp.find('&#8216;') + 7
 				end = temp.find('&#8217', start)
@@ -188,7 +190,7 @@ def main():
 	movies = []
 
 
-	for pageNum in range(1,6):
+	for pageNum in range(1,2):
 		url = "http://variety.com/v/film/page/" + str(pageNum) + "/"
 		movie = scraper(url)
 		for m in movie:
