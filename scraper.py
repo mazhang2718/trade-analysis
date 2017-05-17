@@ -25,7 +25,7 @@ headlineFilter = {"starts": 1, "adds": 1, "moving forward": 2, "in talks": 1, "t
 def nameExtraction(text, keyPhrase):
 	'''Extract name roles from the article content.'''
 
-	regEx = '([.][a-zA-Z0-9, ]*|[a-zA-Z0-9, ]*)' + keyPhrase + '(?!ly)(.*?)[.]'
+	regEx = '([.][a-zA-Z0-9, ""'']*|[a-zA-Z0-9, ""'']*)' + keyPhrase + '(?!ly)(.*?)[.]'
 	m = re.search(regEx, text)
 
 	fullName = ''
