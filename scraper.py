@@ -23,8 +23,25 @@ headlineFilter = {"starts": 1, "adds": 1, "moving forward": 2, "in talks": 1, "t
 "to make": 3, "acquire": 2, "development": 3, "circles": 2, "circling": 2, "sequel": -3, "trailer": -3, 
 "dies": -3, "box office": -3, "film review": -3, "clip": -1, "remembers": -1, "release": -1, "award": -2,
 "nominations": -3, "poll": -3, "$": -2, "oscars": -3, "rules": -1, "release": -1, "remember": -2, 
-"premiere": -2, "spinoff": -3, "reboot": -3, "studio": -2, "sales": -1, "disney":-2}
+"premiere": -2, "spinoff": -3, "reboot": -3, "studio": -2, "sales": -1, "disney": -3}
 
+
+agenciesFilter = ["WME", "CAA", "ICM", "UTA", "Paradigm", "Gersh", "APA", "Innovative Artists"]
+def representation(text):
+	res = ""
+	for i in agenciesFilter:
+		if i in text:
+			if res != "":
+				res += ", "
+			res += i
+	return res		
+
+
+def developmentStage(text):
+	if "acquire" in text.lower() or "acquisition" in text.lower():
+		return "Acquired"
+	else:
+		return "Open for acquisition"
 
 
 def nameExtraction(text, keyPhrase):
@@ -42,21 +59,22 @@ def nameExtraction(text, keyPhrase):
 		#print(subs)
 		role = re.search('[A-Z][a-z]*[ ]([A-Z][a-z]*[ ]*)+', subs)
 		allName = re.findall('([A-Z][a-z]*[ ][A-Z][a-z]*[ ](and[ ][A-Z][a-z]*[ ][A-Z][a-z]*[ ]?)?)',subs)
-		#print(allName)
+		print(allName)
 		Names = {}
 		NamesBeforekeyPhrase = {}
 		NamesAfterkeyPhrase = {}
+		print 'index of keyphrase: %s' % str(subs.index(keyPhrase))
 		#print(subs.index(keyPhrase))
 		dis = len(subs)
 		for i in allName:
 			#Names.append(i[0])
 			
 			if subs.index(i[0]) < subs.index(keyPhrase):
-				NameToKeyword = subs.index(keyPhrase) - subs.index(i[0])+len(i[0]) - 1
+				NameToKeyword = subs.index(keyPhrase) - (subs.index(i[0])+len(i[0]) - 1)
 				#Names[subs.index(keyPhrase) - subs.index(i[0])+len(i[0]) - 1] = i[0]
 				#NamesBeforekeyPhrase[i[0]] = (subs.index(i[0])+len(i[0]))
 			else:
-				NameToKeyword = subs.index(i[0]) - subs.index(keyPhrase) + len(keyPhrase) -1
+				NameToKeyword = subs.index(i[0]) - (subs.index(keyPhrase) + len(keyPhrase) -1)
 				#Names[subs.index(i[0]) - subs.index(keyPhrase) + len(keyPhrase) -1] = i[0]
 				#NamesAfterkeyPhrase[i[0]] = subs.index(i[0])
 			if NameToKeyword < dis:
@@ -64,7 +82,7 @@ def nameExtraction(text, keyPhrase):
 				dis = NameToKeyword
 			else:
 				continue
-
+		print 'index of name: %s' % str(dis)
 		#print(name)
 		#closest = sorted(Names.keys())
 		#print(len(closest))
@@ -109,7 +127,7 @@ def scraper(url):
 		#gets the title of the article
 		tags = articleHTML.findAll('h1')
 		tagsStr = str(tags[0])
-
+		#print(articleHTML.findAll('time')[0]['datetime'][0:10])
 		#gets the meta description of the article
 		meta = articleHTML.find("meta", {"class":"swiftype", "data-type":"text"})
 
@@ -132,7 +150,9 @@ def scraper(url):
 			movie["director"] = nameExtraction(description, "direct")
 			movie["producer"] = nameExtraction(description, "produc")
 			movie["actor"] = nameExtraction(description, "star")
-
+			movie["developmentStage"] = developmentStage(description)
+			movie["representation"] = representation(description)
+			movie["dateTime"] = articleHTML.findAll('time')[0]['datetime'][0:10]
 
 			tagsHeader.append(tagsStr.lower())
 			start = tagsStr.find('\xe2\x80\x98') + 3
@@ -141,6 +161,7 @@ def scraper(url):
 				or "s\xe2\x80\x99" == tagsStr[end+3:end+7].lower()
 				or "director" == tagsStr[end+4:end+12].lower()
 				or "producer" == tagsStr[end+4:end+12].lower()
+				or "writer" == tagsStr[end+4:end+10].lower()
 				or "star" == tagsStr[end+4:end+8].lower()
 				or "effects" == tagsStr[end+4:end+11].lower()):
 				temp = tagsStr[end + 4:]
@@ -158,7 +179,7 @@ def scraper(url):
 				continue
 
 			#if "d" == tagsStr[end+3].lower():
-			#	end += tagsStr[end:].find('\xe2\x80\x99', start)
+			#	end += tagsStr[end:].find('\xe2\x80\x99', 0)
 
 
 			if("</h1" in tagsStr[start:end]):
@@ -225,8 +246,8 @@ def excel_writer(movies):
 
 
 		#sql = "INSERT INTO trade_analysis (TITLE,ACTORS,DIRECTOR, LOGLINE, PRODUCERS) VALUES (" + str(title) + "," + str(movie["actor"]) + "," + str(movie["director"]) + "," + str(plot) + "," + str(movie["producer"]) + ");"
-		sql = "INSERT INTO trade_analysis (TITLE,ACTORS,DIRECTOR, LOGLINE, PRODUCERS) VALUES ('%s','%s','%s','%s','%s');" %(str(title), str(movie["actor"]),str(movie["director"]),str(plot),str(movie["producer"]))
-		
+		sql = "INSERT INTO trade_analysis (TITLE,ACTORS,DIRECTOR, LOGLINE, PRODUCERS,Development_Stage,Representation,Date_Published) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s');" %(str(title), str(movie["actor"]),str(movie["director"]),str(plot),str(movie["producer"]),str(movie["developmentStage"]), str(movie["representation"]), str(movie["dateTime"]))
+		#sql = ""
 		#sql = "INSERT INTO trade_analysis (DIRECTOR) VALUES ('%s'); where title = '%s'" % (movieTitle[movie],movie)
 		#sql = "INSERT INTO trade_analysis (TITLE) VALUES ('%s');" % (title)
 		#sql += "INSERT INTO trade_analysis (ACTORS) VALUES ('%s') where title = '%s';" % (movie["actor"],title)
@@ -259,7 +280,7 @@ def main():
 	movies = []
 
 
-	for pageNum in range(5,8):
+	for pageNum in range(8,10):
 		if pageNum == 1:
 			url = "http://variety.com/v/film/"
 		url = "http://variety.com/v/film/page/" + str(pageNum) + "/"
